@@ -1,0 +1,1597 @@
+basePath: /
+definitions:
+  models.ErrorResponse:
+    properties:
+      error:
+        example: Error message here
+        type: string
+    type: object
+  models.Food:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      food_image:
+        example: https://example.com/images/chicken.jpg
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      menu_id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      name:
+        example: Grilled Chicken
+        maxLength: 100
+        minLength: 2
+        type: string
+      price:
+        example: 15.99
+        type: number
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    required:
+    - food_image
+    - menu_id
+    - name
+    - price
+    type: object
+  models.FoodCreateRequest:
+    properties:
+      food_image:
+        example: https://example.com/images/chicken.jpg
+        type: string
+      menu_id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      name:
+        example: Grilled Chicken
+        maxLength: 100
+        minLength: 2
+        type: string
+      price:
+        example: 15.99
+        type: number
+    required:
+    - food_image
+    - menu_id
+    - name
+    - price
+    type: object
+  models.FoodResponse:
+    properties:
+      food:
+        $ref: '#/definitions/models.Food'
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      message:
+        example: Food created successfully
+        type: string
+    type: object
+  models.Invoice:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      order_id:
+        example: 507f1f77bcf86cd799439012
+        type: string
+      payment_method:
+        enum:
+        - cash
+        - credit_card
+        - debit_card
+        - mobile_payment
+        example: credit_card
+        type: string
+      payment_status:
+        enum:
+        - pending
+        - paid
+        - failed
+        - refunded
+        example: paid
+        type: string
+      total_amount:
+        example: 45.99
+        type: number
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    required:
+    - order_id
+    - payment_method
+    - payment_status
+    - total_amount
+    type: object
+  models.InvoiceCreateRequest:
+    properties:
+      order_id:
+        example: 507f1f77bcf86cd799439012
+        type: string
+      payment_method:
+        enum:
+        - cash
+        - credit_card
+        - debit_card
+        - mobile_payment
+        example: credit_card
+        type: string
+      payment_status:
+        enum:
+        - pending
+        - paid
+        - failed
+        - refunded
+        example: paid
+        type: string
+      total_amount:
+        example: 45.99
+        type: number
+    required:
+    - order_id
+    - payment_method
+    - payment_status
+    - total_amount
+    type: object
+  models.InvoiceResponse:
+    properties:
+      id:
+        example: 507f1f77bcf86cd799439018
+        type: string
+      invoice:
+        $ref: '#/definitions/models.Invoice'
+      message:
+        example: Invoice fetched successfully
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        example: john.doe@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.LoginResponse:
+    properties:
+      message:
+        example: Login successful
+        type: string
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/models.UserSummary'
+    type: object
+  models.Menu:
+    properties:
+      category:
+        example: Main Course
+        type: string
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      end_date:
+        example: "2024-12-31T23:59:59Z"
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      name:
+        example: Dinner Menu
+        type: string
+      start_date:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    required:
+    - category
+    - name
+    type: object
+  models.MenuCreateRequest:
+    properties:
+      category:
+        example: Main Course
+        type: string
+      end_date:
+        example: "2024-12-31T23:59:59Z"
+        type: string
+      name:
+        example: Dinner Menu
+        type: string
+      start_date:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    required:
+    - category
+    - name
+    type: object
+  models.MenuResponse:
+    properties:
+      id:
+        example: 507f1f77bcf86cd799439014
+        type: string
+      menu:
+        $ref: '#/definitions/models.Menu'
+      message:
+        example: Menu fetched successfully
+        type: string
+    type: object
+  models.Order:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      order_date:
+        example: "2024-01-01T12:00:00Z"
+        type: string
+      status:
+        enum:
+        - pending
+        - preparing
+        - ready
+        - delivered
+        - cancelled
+        example: pending
+        type: string
+      table_id:
+        example: 507f1f77bcf86cd799439012
+        type: string
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    required:
+    - status
+    - table_id
+    type: object
+  models.OrderCreateRequest:
+    properties:
+      status:
+        enum:
+        - pending
+        - preparing
+        - ready
+        - delivered
+        - cancelled
+        example: pending
+        type: string
+      table_id:
+        example: 507f1f77bcf86cd799439012
+        type: string
+    required:
+    - status
+    - table_id
+    type: object
+  models.OrderItem:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      food_id:
+        example: 507f1f77bcf86cd799439013
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      order_id:
+        example: 507f1f77bcf86cd799439012
+        type: string
+      quantity:
+        example: 2
+        minimum: 1
+        type: integer
+      unit_price:
+        example: 15.99
+        type: number
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    required:
+    - food_id
+    - order_id
+    - quantity
+    - unit_price
+    type: object
+  models.OrderItemCreateRequest:
+    properties:
+      food_id:
+        example: 507f1f77bcf86cd799439013
+        type: string
+      order_id:
+        example: 507f1f77bcf86cd799439012
+        type: string
+      quantity:
+        example: 2
+        minimum: 1
+        type: integer
+      unit_price:
+        example: 15.99
+        type: number
+    required:
+    - food_id
+    - order_id
+    - quantity
+    - unit_price
+    type: object
+  models.OrderItemResponse:
+    properties:
+      id:
+        example: 507f1f77bcf86cd799439017
+        type: string
+      message:
+        example: Order item fetched successfully
+        type: string
+      order_item:
+        $ref: '#/definitions/models.OrderItem'
+    type: object
+  models.OrderResponse:
+    properties:
+      id:
+        example: 507f1f77bcf86cd799439015
+        type: string
+      message:
+        example: Order fetched successfully
+        type: string
+      order:
+        $ref: '#/definitions/models.Order'
+    type: object
+  models.SignupRequest:
+    properties:
+      email:
+        example: john.doe@example.com
+        type: string
+      first_name:
+        example: John
+        maxLength: 100
+        minLength: 2
+        type: string
+      last_name:
+        example: Doe
+        maxLength: 100
+        minLength: 2
+        type: string
+      password:
+        example: password123
+        minLength: 6
+        type: string
+      phone:
+        example: "+1234567890"
+        type: string
+      user_type:
+        enum:
+        - USER
+        - ADMIN
+        example: USER
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - phone
+    - user_type
+    type: object
+  models.SignupResponse:
+    properties:
+      message:
+        example: User created successfully
+        type: string
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.SuccessResponse:
+    properties:
+      message:
+        example: Operation completed successfully
+        type: string
+    type: object
+  models.Table:
+    properties:
+      capacity:
+        example: 4
+        minimum: 1
+        type: integer
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      is_available:
+        example: true
+        type: boolean
+      table_number:
+        example: 5
+        minimum: 1
+        type: integer
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    required:
+    - capacity
+    - table_number
+    type: object
+  models.TableCreateRequest:
+    properties:
+      capacity:
+        example: 4
+        minimum: 1
+        type: integer
+      table_number:
+        example: 5
+        minimum: 1
+        type: integer
+    required:
+    - capacity
+    - table_number
+    type: object
+  models.TableResponse:
+    properties:
+      id:
+        example: 507f1f77bcf86cd799439016
+        type: string
+      message:
+        example: Table fetched successfully
+        type: string
+      table:
+        $ref: '#/definitions/models.Table'
+    type: object
+  models.User:
+    properties:
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      email:
+        example: john.doe@example.com
+        type: string
+      first_name:
+        example: John
+        maxLength: 100
+        minLength: 2
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      last_name:
+        example: Doe
+        maxLength: 100
+        minLength: 2
+        type: string
+      password:
+        example: password123
+        minLength: 6
+        type: string
+      phone:
+        example: "+1234567890"
+        type: string
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      user_type:
+        enum:
+        - USER
+        - ADMIN
+        example: USER
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - phone
+    - user_type
+    type: object
+  models.UserSummary:
+    properties:
+      email:
+        example: john.doe@example.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      last_name:
+        example: Doe
+        type: string
+      user_type:
+        enum:
+        - USER
+        - ADMIN
+        example: USER
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@restaurant.com
+    name: API Support
+  description: This is a restaurant management system API with user authentication,
+    food ordering, and invoice management
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Restaurant Management API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password, returns JWT access token
+      parameters:
+      - description: Email and Password
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful with authentication token and user details
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Invalid email or password
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: User Login
+      tags:
+      - Authentication
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account with email, password, and profile information
+      parameters:
+      - description: User Registration Details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully with authentication token
+          schema:
+            $ref: '#/definitions/models.SignupResponse'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Email already exists in the system
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: User Signup
+      tags:
+      - Authentication
+  /auth/user:
+    get:
+      consumes:
+      - application/json
+      description: Get authenticated user profile details (requires valid JWT token)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile details (password field will be empty)
+          schema:
+            $ref: '#/definitions/models.UserSummary'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: User not found in database
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Current User
+      tags:
+      - Authentication
+  /foods:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a complete list of all available food items in the restaurant
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Array of all food items with details
+          schema:
+            items:
+              $ref: '#/definitions/models.FoodResponse'
+            type: array
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Database error while fetching foods
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All Foods
+      tags:
+      - Food
+    post:
+      consumes:
+      - application/json
+      description: Create a new food item in the restaurant menu (Admin only)
+      parameters:
+      - description: Food item details (name, price, image, menu_id)
+        in: body
+        name: food
+        required: true
+        schema:
+          $ref: '#/definitions/models.FoodCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Food created successfully with generated ID
+          schema:
+            $ref: '#/definitions/models.FoodResponse'
+        "400":
+          description: Invalid request body or validation failed
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Database error while creating food
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Food
+      tags:
+      - Food
+  /foods/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently delete a food item from the menu (Admin only)
+      parameters:
+      - description: Food MongoDB ObjectID
+        example: '"507f1f77bcf86cd799439011"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Food deleted successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid MongoDB ObjectID format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Food item not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Database error while deleting food
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Food
+      tags:
+      - Food
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed information about a specific food item using
+        its unique ID
+      parameters:
+      - description: Food MongoDB ObjectID
+        example: '"507f1f77bcf86cd799439011"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Food item details
+          schema:
+            $ref: '#/definitions/models.FoodResponse'
+        "400":
+          description: Invalid MongoDB ObjectID format
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Food item not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Food by ID
+      tags:
+      - Food
+    put:
+      consumes:
+      - application/json
+      description: Update an existing food item's information (Admin only)
+      parameters:
+      - description: Food MongoDB ObjectID
+        example: '"507f1f77bcf86cd799439011"'
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated food details
+        in: body
+        name: food
+        required: true
+        schema:
+          $ref: '#/definitions/models.FoodCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Food updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid ID format or request body
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Missing or invalid authentication token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Food item not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Database error while updating food
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Food
+      tags:
+      - Food
+  /invoices:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all invoices
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of invoices
+          schema:
+            items:
+              $ref: '#/definitions/models.InvoiceResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All Invoices
+      tags:
+      - Invoice
+    post:
+      consumes:
+      - application/json
+      description: Create a new invoice
+      parameters:
+      - description: Invoice details
+        in: body
+        name: invoice
+        required: true
+        schema:
+          $ref: '#/definitions/models.InvoiceCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Invoice created successfully
+          schema:
+            $ref: '#/definitions/models.InvoiceResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Invoice
+      tags:
+      - Invoice
+  /invoices/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific invoice by its ID
+      parameters:
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Invoice details
+          schema:
+            $ref: '#/definitions/models.InvoiceResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Invoice not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Invoice by ID
+      tags:
+      - Invoice
+    put:
+      consumes:
+      - application/json
+      description: Update an existing invoice
+      parameters:
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated invoice details
+        in: body
+        name: invoice
+        required: true
+        schema:
+          $ref: '#/definitions/models.InvoiceCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Invoice updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Invoice not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Invoice
+      tags:
+      - Invoice
+  /menus:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all menus
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of menus
+          schema:
+            items:
+              $ref: '#/definitions/models.MenuResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All Menus
+      tags:
+      - Menu
+    post:
+      consumes:
+      - application/json
+      description: Create a new menu
+      parameters:
+      - description: Menu details
+        in: body
+        name: menu
+        required: true
+        schema:
+          $ref: '#/definitions/models.MenuCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Menu created successfully
+          schema:
+            $ref: '#/definitions/models.MenuResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Menu
+      tags:
+      - Menu
+  /menus/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a menu by ID
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menu deleted successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Menu not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Menu
+      tags:
+      - Menu
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific menu by its ID
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menu details
+          schema:
+            $ref: '#/definitions/models.MenuResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Menu not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Menu by ID
+      tags:
+      - Menu
+    put:
+      consumes:
+      - application/json
+      description: Update an existing menu
+      parameters:
+      - description: Menu ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated menu details
+        in: body
+        name: menu
+        required: true
+        schema:
+          $ref: '#/definitions/models.MenuCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Menu updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Menu not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Menu
+      tags:
+      - Menu
+  /orderitems:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve order items, optionally filtered by order ID
+      parameters:
+      - description: Filter by Order ID
+        in: query
+        name: order_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of order items
+          schema:
+            items:
+              $ref: '#/definitions/models.OrderItemResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Order Items
+      tags:
+      - OrderItem
+    post:
+      consumes:
+      - application/json
+      description: Create a new order item
+      parameters:
+      - description: Order item details
+        in: body
+        name: orderitem
+        required: true
+        schema:
+          $ref: '#/definitions/models.OrderItemCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Order item created successfully
+          schema:
+            $ref: '#/definitions/models.OrderItemResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Order Item
+      tags:
+      - OrderItem
+  /orderitems/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an order item by ID
+      parameters:
+      - description: Order Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order item deleted successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Order item not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Order Item
+      tags:
+      - OrderItem
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific order item by its ID
+      parameters:
+      - description: Order Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order item details
+          schema:
+            $ref: '#/definitions/models.OrderItemResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Order item not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Order Item by ID
+      tags:
+      - OrderItem
+    put:
+      consumes:
+      - application/json
+      description: Update an existing order item
+      parameters:
+      - description: Order Item ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated order item details
+        in: body
+        name: orderitem
+        required: true
+        schema:
+          $ref: '#/definitions/models.OrderItemCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order item updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Order item not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Order Item
+      tags:
+      - OrderItem
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of orders
+          schema:
+            items:
+              $ref: '#/definitions/models.OrderResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All Orders
+      tags:
+      - Order
+    post:
+      consumes:
+      - application/json
+      description: Create a new order
+      parameters:
+      - description: Order details
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/models.OrderCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Order created successfully
+          schema:
+            $ref: '#/definitions/models.OrderResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Order
+      tags:
+      - Order
+  /orders/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order deleted successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Order
+      tags:
+      - Order
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific order by its ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order details
+          schema:
+            $ref: '#/definitions/models.OrderResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Order by ID
+      tags:
+      - Order
+    put:
+      consumes:
+      - application/json
+      description: Update an existing order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated order details
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/models.OrderCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Order
+      tags:
+      - Order
+  /tables:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all restaurant tables
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tables
+          schema:
+            items:
+              $ref: '#/definitions/models.TableResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All Tables
+      tags:
+      - Table
+    post:
+      consumes:
+      - application/json
+      description: Create a new restaurant table
+      parameters:
+      - description: Table details
+        in: body
+        name: table
+        required: true
+        schema:
+          $ref: '#/definitions/models.TableCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Table created successfully
+          schema:
+            $ref: '#/definitions/models.TableResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Table
+      tags:
+      - Table
+  /tables/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a table by ID
+      parameters:
+      - description: Table ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table deleted successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Table not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete Table
+      tags:
+      - Table
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific table by its ID
+      parameters:
+      - description: Table ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table details
+          schema:
+            $ref: '#/definitions/models.TableResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Table not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Table by ID
+      tags:
+      - Table
+    put:
+      consumes:
+      - application/json
+      description: Update an existing table
+      parameters:
+      - description: Table ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated table details
+        in: body
+        name: table
+        required: true
+        schema:
+          $ref: '#/definitions/models.TableCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Table updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Table not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Table
+      tags:
+      - Table
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: token
+    type: apiKey
+swagger: "2.0"
