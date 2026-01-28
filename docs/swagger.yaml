@@ -1184,15 +1184,11 @@ paths:
         "404":
           description: Order item not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete Order Item

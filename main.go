@@ -72,6 +72,11 @@ func main() {
 	// Swagger documentation route
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	// will render html file
+	router.GET("/", func(c *gin.Context) {
+		c.File("./docs/index.html")
+	})
+
 	fmt.Printf("🚀 Server starting on port %s\n", port)
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)
