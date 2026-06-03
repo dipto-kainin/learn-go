@@ -1,13 +1,15 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"restroBackend/controllers"
 	"restroBackend/database"
 	_ "restroBackend/docs" // Import generated docs
 	"restroBackend/middleware"
 	"restroBackend/routes"
-	"fmt"
-	"log"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -44,6 +46,9 @@ func main() {
 	// Connect to MongoDB
 	database.ConnectDB()
 
+	// Start background booking auto-cancellation worker
+	controllers.StartBookingAutoCanceller(context.Background())
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -72,6 +77,7 @@ func main() {
 	routes.TableRoutes(router)
 	routes.OrderItemRoutes(router)
 	routes.InvoiceRoutes(router)
+	routes.BookingRoutes(router)
 
 	// Swagger documentation route
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

@@ -112,6 +112,17 @@ func CreateOrder() gin.HandlerFunc {
 			return
 		}
 
+		// Prevent duplicate active orders on the same table
+		var existingOrder models.Order
+		err := getOrderCollection().FindOne(ctx, bson.M{
+			"table_id": order.TableID,
+			"status":   bson.M{"$nin": []string{"served", "cancelled"}},
+		}).Decode(&existingOrder)
+		if err == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "An active order already exists for this table"})
+			return
+		}
+
 		order.CreatedAt = time.Now()
 		order.UpdatedAt = time.Now()
 		order.OrderDate = time.Now()

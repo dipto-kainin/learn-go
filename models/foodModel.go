@@ -8,13 +8,13 @@ import (
 
 type Food struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id" example:"507f1f77bcf86cd799439011"`
-	Name        string             `json:"name" validate:"required,min=2,max=100" example:"Grilled Chicken"`
-	Price       float64            `json:"price" validate:"required,gt=0" example:"150.00"`
+	Name        string             `bson:"name,omitempty" json:"name" validate:"required,min=2,max=100" example:"Grilled Chicken"`
+	Price       float64            `bson:"price,omitempty" json:"price" validate:"required,gt=0" example:"150.00"`
 	FoodImage   string             `bson:"food_image,omitempty" json:"food_image" validate:"required" example:"https://example.com/images/chicken.jpg"`
 	ImageFileID string             `bson:"image_file_id,omitempty" json:"image_file_id" example:"file_id_here"`
-	MenuID      string             `json:"menu_id" validate:"required" example:"507f1f77bcf86cd799439011"`
+	MenuID      string             `bson:"menu_id,omitempty" json:"menu_id" validate:"required" example:"507f1f77bcf86cd799439011"`
 	Description string             `bson:"description,omitempty" json:"description" example:"Delicious dish"`
 	ImageBase64 string             `bson:"-" json:"image_base64,omitempty"` // Base64 data for photo uploads
-	CreatedAt   time.Time          `json:"created_at" example:"2024-01-01T00:00:00Z"`
-	UpdatedAt   time.Time          `json:"updated_at" example:"2024-01-01T00:00:00Z"`
+	CreatedAt   time.Time          `bson:"created_at,omitempty" json:"created_at" example:"2024-01-01T00:00:00Z"`
+	UpdatedAt   time.Time          `bson:"updated_at,omitempty" json:"updated_at" example:"2024-01-01T00:00:00Z"`
 }

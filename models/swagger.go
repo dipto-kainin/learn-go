@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // SignupRequest represents the user signup request body
 type SignupRequest struct {
 	FirstName string `json:"first_name" validate:"required,min=2,max=100" example:"John"`
@@ -7,7 +9,7 @@ type SignupRequest struct {
 	Email     string `json:"email" validate:"email,required" example:"john.doe@example.com"`
 	Password  string `json:"password" validate:"required,min=6" example:"password123"`
 	Phone     string `json:"phone" validate:"required" example:"+1234567890"`
-	UserType  string `json:"user_type" validate:"required,eq=ADMIN|eq=USER" example:"USER" enums:"USER,ADMIN"`
+	UserType  string `json:"user_type" validate:"required,eq=ADMIN|eq=STAFF|eq=USER" example:"USER" enums:"ADMIN,STAFF,USER"`
 }
 
 // SignupResponse represents the successful signup response
@@ -30,7 +32,7 @@ type UserSummary struct {
 	Email     string `json:"email" example:"john.doe@example.com"`
 	FirstName string `json:"first_name" example:"John"`
 	LastName  string `json:"last_name" example:"Doe"`
-	UserType  string `json:"user_type" example:"USER" enums:"USER,ADMIN"`
+	UserType  string `json:"user_type" example:"USER" enums:"ADMIN,STAFF,USER"`
 }
 
 // ErrorResponse represents an error response
@@ -128,3 +130,21 @@ type InvoiceResponse struct {
 	ID      string  `json:"id" example:"507f1f77bcf86cd799439018"`
 	Invoice Invoice `json:"invoice"`
 }
+
+// BookingCreateRequest represents the request to create a booking
+type BookingCreateRequest struct {
+	TableID        string    `json:"table_id" validate:"required" example:"507f1f77bcf86cd799439012"`
+	PartySize      int       `json:"party_size" validate:"required,min=1,max=20" example:"4"`
+	IsShared       bool      `json:"is_shared" example:"false"`
+	ComfortSharing bool      `json:"comfort_sharing" example:"true"`
+	StartTime      time.Time `json:"start_time" validate:"required" example:"2026-06-03T10:00:00Z"`
+	EndTime        time.Time `json:"end_time" validate:"required" example:"2026-06-03T12:00:00Z"`
+}
+
+// BookingResponse represents the response after creating or fetching a booking
+type BookingResponse struct {
+	Message string  `json:"message" example:"Booking created successfully"`
+	ID      string  `json:"id" example:"507f1f77bcf86cd799439019"`
+	Booking Booking `json:"booking"`
+}
+

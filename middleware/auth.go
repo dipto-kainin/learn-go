@@ -51,3 +51,15 @@ func RequireAdmin() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func RequireStaffOrAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userType := c.GetString("user_type")
+		if userType != "STAFF" && userType != "ADMIN" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Staff or admin access required"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}

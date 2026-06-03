@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"restroBackend/database"
-	"restroBackend/models"
 	"context"
 	"net/http"
+	"restroBackend/database"
+	"restroBackend/models"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +15,138 @@ import (
 
 func getTableCollection() *mongo.Collection {
 	return database.GetCollection(database.Client, "tables")
+}
+
+func parseTime(s string) (time.Time, error) {
+	t, err := time.Parse(time.RFC3339, s)
+	if err == nil {
+		return t, nil
+	}
+	t, err = time.Parse("2006-01-02T15:04:05", s)
+	return t, err
+}
+
+func enrichTableForInterval(ctx context.Context, table *models.Table, start time.Time, end time.Time) {
+	bookingCol := database.GetCollection(database.Client, "bookings")
+
+	endBuf := end.Add(30 * time.Minute)
+	filter := bson.M{
+		"table_id":   table.ID.Hex(),
+		"status":     bson.M{"$in": []string{"pending", "checked_in"}},
+		"start_time": bson.M{"$lt": endBuf},
+		"end_time":   bson.M{"$gt": start.Add(-30 * time.Minute)},
+	}
+
+	cursor, err := bookingCol.Find(ctx, filter)
+	if err != nil {
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var bookings []models.Booking
+	if err = cursor.All(ctx, &bookings); err != nil {
+		return
+	}
+
+	if len(bookings) == 0 {
+		if table.Status != "occupied" {
+			table.Status = "vacant"
+			table.IsAvailable = true
+		}
+		table.SeatsReserved = 0
+		return
+	}
+
+	hasExclusive := false
+	hasCheckedIn := false
+	for _, b := range bookings {
+		if !b.IsShared {
+			hasExclusive = true
+		}
+		if b.Status == "checked_in" {
+			hasCheckedIn = true
+		}
+	}
+
+	if hasExclusive {
+		table.SeatsReserved = table.Capacity
+		table.IsAvailable = false
+		if table.Status != "occupied" {
+			if hasCheckedIn {
+				table.Status = "occupied"
+			} else {
+				table.Status = "reserved"
+			}
+		}
+		return
+	}
+
+	timePoints := map[time.Time]bool{
+		start: true,
+	}
+	for _, b := range bookings {
+		bStart := b.StartTime
+		bEndBuf := b.EndTime.Add(30 * time.Minute)
+		if bStart.After(start) && bStart.Before(endBuf) {
+			timePoints[bStart] = true
+		}
+		if bEndBuf.After(start) && bEndBuf.Before(endBuf) {
+			timePoints[bEndBuf] = true
+		}
+	}
+
+	peakSeats := 0
+	for tp := range timePoints {
+		occupiedAtTP := 0
+		for _, b := range bookings {
+			bStart := b.StartTime
+			bEndBuf := b.EndTime.Add(30 * time.Minute)
+			if (bStart.Before(tp) || bStart.Equal(tp)) && tp.Before(bEndBuf) {
+				occupiedAtTP += b.PartySize
+			}
+		}
+		if occupiedAtTP > peakSeats {
+			peakSeats = occupiedAtTP
+		}
+	}
+
+	table.SeatsReserved = peakSeats
+	table.IsAvailable = table.SeatsReserved < table.Capacity
+
+	if table.Status != "occupied" {
+		if hasCheckedIn {
+			table.Status = "occupied"
+		} else {
+			table.Status = "reserved"
+		}
+	}
+}
+
+func updateTableStatusForCurrentTime(ctx context.Context, tableID string) {
+	tableObjID, err := primitive.ObjectIDFromHex(tableID)
+	if err != nil {
+		return
+	}
+
+	var table models.Table
+	tableCol := getTableCollection()
+	err = tableCol.FindOne(ctx, bson.M{"_id": tableObjID}).Decode(&table)
+	if err != nil {
+		return
+	}
+
+	now := time.Now()
+	enrichTableForInterval(ctx, &table, now, now.Add(2*time.Hour))
+
+	update := bson.M{
+		"$set": bson.M{
+			"status":         table.Status,
+			"is_available":   table.IsAvailable,
+			"seats_reserved": table.SeatsReserved,
+			"updated_at":     now,
+		},
+	}
+	_, _ = tableCol.UpdateOne(ctx, bson.M{"_id": tableObjID}, update)
 }
 
 // @Summary Get All Tables
@@ -42,6 +174,27 @@ func GetTables() gin.HandlerFunc {
 		if err = cursor.All(ctx, &tables); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error decoding tables"})
 			return
+		}
+
+		startTimeStr := c.Query("start_time")
+		endTimeStr := c.Query("end_time")
+
+		var start, end time.Time
+		var parseErr error
+		if startTimeStr != "" && endTimeStr != "" {
+			start, parseErr = parseTime(startTimeStr)
+			if parseErr == nil {
+				end, parseErr = parseTime(endTimeStr)
+			}
+		}
+
+		if startTimeStr == "" || endTimeStr == "" || parseErr != nil {
+			start = time.Now()
+			end = time.Now().Add(2 * time.Hour)
+		}
+
+		for i := range tables {
+			enrichTableForInterval(ctx, &tables[i], start, end)
 		}
 
 		c.JSON(http.StatusOK, tables)
@@ -77,6 +230,25 @@ func GetTable() gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Table not found"})
 			return
 		}
+
+		startTimeStr := c.Query("start_time")
+		endTimeStr := c.Query("end_time")
+
+		var start, end time.Time
+		var parseErr error
+		if startTimeStr != "" && endTimeStr != "" {
+			start, parseErr = parseTime(startTimeStr)
+			if parseErr == nil {
+				end, parseErr = parseTime(endTimeStr)
+			}
+		}
+
+		if startTimeStr == "" || endTimeStr == "" || parseErr != nil {
+			start = time.Now()
+			end = time.Now().Add(2 * time.Hour)
+		}
+
+		enrichTableForInterval(ctx, &table, start, end)
 
 		c.JSON(http.StatusOK, table)
 	}
@@ -232,6 +404,35 @@ func UpdateTable() gin.HandlerFunc {
 		if result.MatchedCount == 0 {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Table not found"})
 			return
+		}
+
+		if table.Status == "vacant" {
+			bookingCol := database.GetCollection(database.Client, "bookings")
+			now := time.Now()
+			cursor, err := bookingCol.Find(ctx, bson.M{
+				"table_id": tableID,
+				"status":   bson.M{"$in": []string{"pending", "checked_in"}},
+			})
+			if err == nil {
+				var tableBookings []models.Booking
+				if err := cursor.All(ctx, &tableBookings); err == nil {
+					for _, b := range tableBookings {
+						if b.StartTime.Before(now) || b.StartTime.IsZero() {
+							newStatus := "completed"
+							if b.Status == "pending" {
+								newStatus = "cancelled"
+							}
+							_, _ = bookingCol.UpdateOne(ctx, bson.M{"_id": b.ID}, bson.M{
+								"$set": bson.M{
+									"status":     newStatus,
+									"updated_at": now,
+								},
+							})
+						}
+					}
+				}
+				cursor.Close(ctx)
+			}
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Table updated successfully"})
