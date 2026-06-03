@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"basic-backend/database"
-	"basic-backend/models"
+	"restroBackend/database"
+	"restroBackend/models"
 	"context"
 	"net/http"
 	"time"
@@ -40,7 +40,7 @@ func GetOrderItems() gin.HandlerFunc {
 			filter["order_id"] = orderID
 		}
 
-		var orderItems []models.OrderItem
+		orderItems := []models.OrderItem{}
 		cursor, err := getOrderItemCollection().Find(ctx, filter)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching order items"})

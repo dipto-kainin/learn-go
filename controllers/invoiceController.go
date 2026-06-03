@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"basic-backend/database"
-	"basic-backend/models"
+	"restroBackend/database"
+	"restroBackend/models"
 	"context"
 	"net/http"
 	"time"
@@ -31,7 +31,7 @@ func GetInvoices() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		var invoices []models.Invoice
+		invoices := []models.Invoice{}
 		cursor, err := getInvoiceCollection().Find(ctx, bson.M{})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching invoices"})

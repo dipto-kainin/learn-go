@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"basic-backend/database"
-	"basic-backend/helpers"
-	"basic-backend/models"
+	"restroBackend/database"
+	"restroBackend/helpers"
+	"restroBackend/models"
 	"context"
 	"net/http"
 	"time"

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"basic-backend/controllers"
-	"basic-backend/middleware"
+	"restroBackend/controllers"
+	"restroBackend/middleware"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,9 +1,10 @@
 package controllers
 
 import (
-	"basic-backend/database"
-	"basic-backend/models"
+	"restroBackend/database"
+	"restroBackend/models"
 	"context"
+	"log"
 	"net/http"
 	"time"
 
@@ -31,7 +32,7 @@ func GetMenus() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		var menus []models.Menu
+		menus := []models.Menu{}
 		cursor, err := getMenuCollection().Find(ctx, bson.M{})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching menus"})
@@ -110,6 +111,20 @@ func CreateMenu() gin.HandlerFunc {
 			return
 		}
 
+		// Check uniqueness of Name and Category (subcategory) together
+		count, err := getMenuCollection().CountDocuments(ctx, bson.M{
+			"name":     menu.Name,
+			"category": menu.Category,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking category uniqueness"})
+			return
+		}
+		if count > 0 {
+			c.JSON(http.StatusConflict, gin.H{"error": "This category and subcategory combination already exists"})
+			return
+		}
+
 		menu.CreatedAt = time.Now()
 		menu.UpdatedAt = time.Now()
 		menu.ID = primitive.NewObjectID()
@@ -156,6 +171,21 @@ func UpdateMenu() gin.HandlerFunc {
 		var menu models.Menu
 		if err := c.BindJSON(&menu); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Check uniqueness of Name and Category (subcategory) together on other records
+		count, err := getMenuCollection().CountDocuments(ctx, bson.M{
+			"name":     menu.Name,
+			"category": menu.Category,
+			"_id":      bson.M{"$ne": objID},
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking category uniqueness"})
+			return
+		}
+		if count > 0 {
+			c.JSON(http.StatusConflict, gin.H{"error": "This category and subcategory combination already exists"})
 			return
 		}
 
@@ -219,6 +249,15 @@ func DeleteMenu() gin.HandlerFunc {
 		if result.DeletedCount == 0 {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Menu not found"})
 			return
+		}
+
+		// Remove menu_id from all foods belonging to this menu
+		foodCollection := database.GetCollection(database.Client, "foods")
+		_, updateErr := foodCollection.UpdateMany(ctx, bson.M{"menu_id": menuID}, bson.M{
+			"$set": bson.M{"menu_id": ""},
+		})
+		if updateErr != nil {
+			log.Println("Error clearing menu_id from foods:", updateErr)
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Menu deleted successfully"})

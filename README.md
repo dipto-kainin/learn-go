@@ -86,8 +86,8 @@ If you want to override runtime metadata (title, host, schemes) without editing 
 
 ```go
 import (
-    _ "basic-backend/docs"
-    docs "basic-backend/docs"
+    _ "restroBackend/docs"
+    docs "restroBackend/docs"
 )
 
 func main() {

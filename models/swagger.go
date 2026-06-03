@@ -46,7 +46,7 @@ type SuccessResponse struct {
 // FoodCreateRequest represents the request to create a food item
 type FoodCreateRequest struct {
 	Name      string  `json:"name" validate:"required,min=2,max=100" example:"Grilled Chicken"`
-	Price     float64 `json:"price" validate:"required,gt=0" example:"15.99"`
+	Price     float64 `json:"price" validate:"required,gt=0" example:"150.00"`
 	FoodImage string  `json:"food_image" validate:"required" example:"https://example.com/images/chicken.jpg"`
 	MenuID    string  `json:"menu_id" validate:"required" example:"507f1f77bcf86cd799439011"`
 }
@@ -82,7 +82,7 @@ type TableCreateRequest struct {
 type InvoiceCreateRequest struct {
 	OrderID       string  `json:"order_id" validate:"required" example:"507f1f77bcf86cd799439012"`
 	PaymentMethod string  `json:"payment_method" validate:"required" example:"credit_card" enums:"cash,credit_card,debit_card,mobile_payment"`
-	TotalAmount   float64 `json:"total_amount" validate:"required,gt=0" example:"45.99"`
+	TotalAmount   float64 `json:"total_amount" validate:"required,gt=0" example:"450.00"`
 	PaymentStatus string  `json:"payment_status" validate:"required" example:"paid" enums:"pending,paid,failed,refunded"`
 }
 
@@ -91,7 +91,7 @@ type OrderItemCreateRequest struct {
 	OrderID   string  `json:"order_id" validate:"required" example:"507f1f77bcf86cd799439012"`
 	FoodID    string  `json:"food_id" validate:"required" example:"507f1f77bcf86cd799439013"`
 	Quantity  int     `json:"quantity" validate:"required,min=1" example:"2"`
-	UnitPrice float64 `json:"unit_price" validate:"required,gt=0" example:"15.99"`
+	UnitPrice float64 `json:"unit_price" validate:"required,gt=0" example:"150.00"`
 }
 
 // MenuResponse represents the response after creating or fetching a menu

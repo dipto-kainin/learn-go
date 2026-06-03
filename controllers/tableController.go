@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"basic-backend/database"
-	"basic-backend/models"
+	"restroBackend/database"
+	"restroBackend/models"
 	"context"
 	"net/http"
 	"time"
@@ -31,7 +31,7 @@ func GetTables() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		var tables []models.Table
+		tables := []models.Table{}
 		cursor, err := getTableCollection().Find(ctx, bson.M{})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching tables"})
@@ -104,16 +104,37 @@ func CreateTable() gin.HandlerFunc {
 			return
 		}
 
+		if table.Capacity == 0 && table.NumberOfGuests > 0 {
+			table.Capacity = table.NumberOfGuests
+		}
+		if table.NumberOfGuests == 0 && table.Capacity > 0 {
+			table.NumberOfGuests = table.Capacity
+		}
+		if table.Status == "" {
+			table.Status = "vacant"
+		}
+		table.IsAvailable = (table.Status == "vacant")
+
 		validationErr := validate.Struct(table)
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 			return
 		}
 
+		// Check if table number already exists
+		count, err := getTableCollection().CountDocuments(ctx, bson.M{"table_number": table.TableNumber})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking table number uniqueness"})
+			return
+		}
+		if count > 0 {
+			c.JSON(http.StatusConflict, gin.H{"error": "Table number already exists"})
+			return
+		}
+
 		table.CreatedAt = time.Now()
 		table.UpdatedAt = time.Now()
 		table.ID = primitive.NewObjectID()
-		table.IsAvailable = true
 
 		result, err := getTableCollection().InsertOne(ctx, table)
 		if err != nil {
@@ -160,14 +181,45 @@ func UpdateTable() gin.HandlerFunc {
 			return
 		}
 
+		if table.Capacity == 0 && table.NumberOfGuests > 0 {
+			table.Capacity = table.NumberOfGuests
+		}
+		if table.NumberOfGuests == 0 && table.Capacity > 0 {
+			table.NumberOfGuests = table.Capacity
+		}
+		if table.Status != "" {
+			table.IsAvailable = (table.Status == "vacant")
+		} else {
+			table.Status = "occupied"
+			if table.IsAvailable {
+				table.Status = "vacant"
+			}
+		}
+
+		// Check if table number already exists on a different table
+		count, err := getTableCollection().CountDocuments(ctx, bson.M{
+			"table_number": table.TableNumber,
+			"_id":          bson.M{"$ne": objID},
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking table number uniqueness"})
+			return
+		}
+		if count > 0 {
+			c.JSON(http.StatusConflict, gin.H{"error": "Table number already exists"})
+			return
+		}
+
 		table.UpdatedAt = time.Now()
 
 		update := bson.M{
 			"$set": bson.M{
-				"table_number": table.TableNumber,
-				"capacity":     table.Capacity,
-				"is_available": table.IsAvailable,
-				"updated_at":   table.UpdatedAt,
+				"table_number":     table.TableNumber,
+				"capacity":         table.Capacity,
+				"number_of_guests": table.NumberOfGuests,
+				"status":           table.Status,
+				"is_available":     table.IsAvailable,
+				"updated_at":       table.UpdatedAt,
 			},
 		}
 

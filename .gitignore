@@ -9,6 +9,8 @@
 *.dylib
 *.test
 *.out
+restroBackend
+restroBackend
 
 # Dependency directories
 vendor/

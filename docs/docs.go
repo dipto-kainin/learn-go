@@ -129,11 +129,6 @@ const docTemplate = `{
         },
         "/auth/user": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Get authenticated user profile details (requires valid JWT token)",
                 "consumes": [
                     "application/json"
@@ -164,16 +159,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/foods": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/foods": {
+            "get": {
                 "description": "Retrieve a complete list of all available food items in the restaurant",
                 "consumes": [
                     "application/json"
@@ -207,17 +202,17 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "post": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "post": {
                 "description": "Create a new food item in the restaurant menu (Admin only)",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -228,13 +223,38 @@ const docTemplate = `{
                 "summary": "Create Food",
                 "parameters": [
                     {
-                        "description": "Food item details (name, price, image, menu_id)",
-                        "name": "food",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.FoodCreateRequest"
-                        }
+                        "type": "string",
+                        "description": "Food Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Food Price",
+                        "name": "price",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Menu ID",
+                        "name": "menu_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Food Description",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Food Image File",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -262,16 +282,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/foods/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/foods/{id}": {
+            "get": {
                 "description": "Retrieve detailed information about a specific food item using its unique ID",
                 "consumes": [
                     "application/json"
@@ -318,17 +338,17 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "put": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "put": {
                 "description": "Update an existing food item's information (Admin only)",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -347,13 +367,37 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Updated food details",
-                        "name": "food",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.FoodCreateRequest"
-                        }
+                        "type": "string",
+                        "description": "Food Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Food Price",
+                        "name": "price",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Menu ID",
+                        "name": "menu_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Food Description",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Food Image File",
+                        "name": "image",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -387,14 +431,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "Permanently delete a food item from the menu (Admin only)",
                 "consumes": [
                     "application/json"
@@ -447,16 +491,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/invoices": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/invoices": {
+            "get": {
                 "description": "Retrieve a list of all invoices",
                 "consumes": [
                     "application/json"
@@ -484,14 +528,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "post": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "post": {
                 "description": "Create a new invoice",
                 "consumes": [
                     "application/json"
@@ -533,16 +577,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/invoices/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/invoices/{id}": {
+            "get": {
                 "description": "Retrieve a specific invoice by its ID",
                 "consumes": [
                     "application/json"
@@ -582,14 +626,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "put": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "put": {
                 "description": "Update an existing invoice",
                 "consumes": [
                     "application/json"
@@ -644,16 +688,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/menus": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/menus": {
+            "get": {
                 "description": "Retrieve a list of all menus",
                 "consumes": [
                     "application/json"
@@ -681,14 +725,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "post": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "post": {
                 "description": "Create a new menu",
                 "consumes": [
                     "application/json"
@@ -730,16 +774,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/menus/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/menus/{id}": {
+            "get": {
                 "description": "Retrieve a specific menu by its ID",
                 "consumes": [
                     "application/json"
@@ -779,14 +823,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "put": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "put": {
                 "description": "Update an existing menu",
                 "consumes": [
                     "application/json"
@@ -841,14 +885,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "Delete a menu by ID",
                 "consumes": [
                     "application/json"
@@ -894,16 +938,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/orderitems": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/orderitems": {
+            "get": {
                 "description": "Retrieve order items, optionally filtered by order ID",
                 "consumes": [
                     "application/json"
@@ -939,14 +983,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "post": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "post": {
                 "description": "Create a new order item",
                 "consumes": [
                     "application/json"
@@ -988,16 +1032,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/orderitems/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/orderitems/{id}": {
+            "get": {
                 "description": "Retrieve a specific order item by its ID",
                 "consumes": [
                     "application/json"
@@ -1037,14 +1081,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "put": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "put": {
                 "description": "Update an existing order item",
                 "consumes": [
                     "application/json"
@@ -1099,14 +1143,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "Delete an order item by ID",
                 "consumes": [
                     "application/json"
@@ -1152,16 +1196,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/orders": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/orders": {
+            "get": {
                 "description": "Retrieve a list of all orders",
                 "consumes": [
                     "application/json"
@@ -1189,14 +1233,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "post": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "post": {
                 "description": "Create a new order",
                 "consumes": [
                     "application/json"
@@ -1238,16 +1282,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/orders/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/orders/{id}": {
+            "get": {
                 "description": "Retrieve a specific order by its ID",
                 "consumes": [
                     "application/json"
@@ -1287,14 +1331,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "put": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "put": {
                 "description": "Update an existing order",
                 "consumes": [
                     "application/json"
@@ -1349,14 +1393,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "Delete an order by ID",
                 "consumes": [
                     "application/json"
@@ -1402,16 +1446,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/tables": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/tables": {
+            "get": {
                 "description": "Retrieve a list of all restaurant tables",
                 "consumes": [
                     "application/json"
@@ -1439,14 +1483,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "post": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "post": {
                 "description": "Create a new restaurant table",
                 "consumes": [
                     "application/json"
@@ -1488,16 +1532,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            }
-        },
-        "/tables/{id}": {
-            "get": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/tables/{id}": {
+            "get": {
                 "description": "Retrieve a specific table by its ID",
                 "consumes": [
                     "application/json"
@@ -1537,14 +1581,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "put": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "put": {
                 "description": "Update an existing table",
                 "consumes": [
                     "application/json"
@@ -1599,14 +1643,14 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
-            },
-            "delete": {
+                },
                 "security": [
                     {
                         "BearerAuth": []
                     }
-                ],
+                ]
+            },
+            "delete": {
                 "description": "Delete a table by ID",
                 "consumes": [
                     "application/json"
@@ -1652,7 +1696,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
             }
         }
     },
@@ -1679,6 +1728,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2024-01-01T00:00:00Z"
                 },
+                "description": {
+                    "type": "string",
+                    "example": "Delicious dish"
+                },
                 "food_image": {
                     "type": "string",
                     "example": "https://example.com/images/chicken.jpg"
@@ -1687,6 +1740,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "507f1f77bcf86cd799439011"
                 },
+                "image_base64": {
+                    "description": "Base64 data for photo uploads",
+                    "type": "string"
+                },
+                "image_file_id": {
+                    "type": "string",
+                    "example": "file_id_here"
+                },
                 "menu_id": {
                     "type": "string",
                     "example": "507f1f77bcf86cd799439011"
@@ -1699,40 +1760,11 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number",
-                    "example": 15.99
+                    "example": 150
                 },
                 "updated_at": {
                     "type": "string",
                     "example": "2024-01-01T00:00:00Z"
-                }
-            }
-        },
-        "models.FoodCreateRequest": {
-            "type": "object",
-            "required": [
-                "food_image",
-                "menu_id",
-                "name",
-                "price"
-            ],
-            "properties": {
-                "food_image": {
-                    "type": "string",
-                    "example": "https://example.com/images/chicken.jpg"
-                },
-                "menu_id": {
-                    "type": "string",
-                    "example": "507f1f77bcf86cd799439011"
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 2,
-                    "example": "Grilled Chicken"
-                },
-                "price": {
-                    "type": "number",
-                    "example": 15.99
                 }
             }
         },
@@ -1838,7 +1870,7 @@ const docTemplate = `{
                 },
                 "total_amount": {
                     "type": "number",
-                    "example": 45.99
+                    "example": 450
                 }
             }
         },
@@ -2097,7 +2129,7 @@ const docTemplate = `{
                 },
                 "unit_price": {
                     "type": "number",
-                    "example": 15.99
+                    "example": 150
                 }
             }
         },
@@ -2227,6 +2259,14 @@ const docTemplate = `{
                 "is_available": {
                     "type": "boolean",
                     "example": true
+                },
+                "number_of_guests": {
+                    "type": "integer",
+                    "example": 4
+                },
+                "status": {
+                    "type": "string",
+                    "example": "vacant"
                 },
                 "table_number": {
                     "type": "integer",

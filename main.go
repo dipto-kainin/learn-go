@@ -1,9 +1,10 @@
 package main
 
 import (
-	"basic-backend/database"
-	_ "basic-backend/docs" // Import generated docs
-	"basic-backend/routes"
+	"restroBackend/database"
+	_ "restroBackend/docs" // Import generated docs
+	"restroBackend/middleware"
+	"restroBackend/routes"
 	"fmt"
 	"log"
 	"os"
@@ -49,6 +50,9 @@ func main() {
 	}
 
 	router := gin.Default()
+	router.Use(middleware.RequestID())
+	router.Use(middleware.ResponseWrapper())
+	router.Use(middleware.CORSMiddleware())
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 

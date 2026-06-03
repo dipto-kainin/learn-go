@@ -11,12 +11,21 @@ definitions:
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
+      description:
+        example: Delicious dish
+        type: string
       food_image:
         example: https://example.com/images/chicken.jpg
         type: string
       id:
         example: 507f1f77bcf86cd799439011
         type: string
+      image_base64:
+        description: Base64 data for photo uploads
+        type: string
+      image_file_id:
+        example: file_id_here
+        type: string
       menu_id:
         example: 507f1f77bcf86cd799439011
         type: string
@@ -26,33 +35,11 @@ definitions:
         minLength: 2
         type: string
       price:
-        example: 15.99
+        example: 150
         type: number
       updated_at:
         example: "2024-01-01T00:00:00Z"
         type: string
-    required:
-    - food_image
-    - menu_id
-    - name
-    - price
-    type: object
-  models.FoodCreateRequest:
-    properties:
-      food_image:
-        example: https://example.com/images/chicken.jpg
-        type: string
-      menu_id:
-        example: 507f1f77bcf86cd799439011
-        type: string
-      name:
-        example: Grilled Chicken
-        maxLength: 100
-        minLength: 2
-        type: string
-      price:
-        example: 15.99
-        type: number
     required:
     - food_image
     - menu_id
@@ -131,7 +118,7 @@ definitions:
         example: paid
         type: string
       total_amount:
-        example: 45.99
+        example: 450
         type: number
     required:
     - order_id
@@ -320,7 +307,7 @@ definitions:
         minimum: 1
         type: integer
       unit_price:
-        example: 15.99
+        example: 150
         type: number
     required:
     - food_id
@@ -418,6 +405,12 @@ definitions:
       is_available:
         example: true
         type: boolean
+      number_of_guests:
+        example: 4
+        type: integer
+      status:
+        example: vacant
+        type: string
       table_number:
         example: 5
         minimum: 1
@@ -662,15 +655,33 @@ paths:
       - Food
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Create a new food item in the restaurant menu (Admin only)
       parameters:
-      - description: Food item details (name, price, image, menu_id)
-        in: body
-        name: food
+      - description: Food Name
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/models.FoodCreateRequest'
+        type: string
+      - description: Food Price
+        in: formData
+        name: price
+        required: true
+        type: number
+      - description: Menu ID
+        in: formData
+        name: menu_id
+        required: true
+        type: string
+      - description: Food Description
+        in: formData
+        name: description
+        type: string
+      - description: Food Image File
+        in: formData
+        name: image
+        required: true
+        type: file
       produces:
       - application/json
       responses:
@@ -773,7 +784,7 @@ paths:
       - Food
     put:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Update an existing food item's information (Admin only)
       parameters:
       - description: Food MongoDB ObjectID
@@ -782,12 +793,29 @@ paths:
         name: id
         required: true
         type: string
-      - description: Updated food details
-        in: body
-        name: food
+      - description: Food Name
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/models.FoodCreateRequest'
+        type: string
+      - description: Food Price
+        in: formData
+        name: price
+        required: true
+        type: number
+      - description: Menu ID
+        in: formData
+        name: menu_id
+        required: true
+        type: string
+      - description: Food Description
+        in: formData
+        name: description
+        type: string
+      - description: Food Image File
+        in: formData
+        name: image
+        type: file
       produces:
       - application/json
       responses:
