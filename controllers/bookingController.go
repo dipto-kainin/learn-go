@@ -312,6 +312,96 @@ func CheckInBooking() gin.HandlerFunc {
 			return
 		}
 
+		// Load table details to verify capacity
+		tableObjID, err := primitive.ObjectIDFromHex(booking.TableID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid table ID on booking"})
+			return
+		}
+		var table models.Table
+		err = getTableCollection().FindOne(ctx, bson.M{"_id": tableObjID}).Decode(&table)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Table not found"})
+			return
+		}
+
+		// Calculate check-in dining interval [now, now + duration + 30 min]
+		now := time.Now()
+		duration := booking.EndTime.Sub(booking.StartTime)
+		checkInEndBuf := now.Add(duration).Add(30 * time.Minute)
+
+		// Query OTHER active bookings on this table during this period
+		var otherBookings []models.Booking
+		cursor, err := getBookingCollection().Find(ctx, bson.M{
+			"table_id": booking.TableID,
+			"status":   bson.M{"$in": []string{"pending", "checked_in"}},
+			"_id":      bson.M{"$ne": objID},
+		})
+		if err == nil {
+			cursor.All(ctx, &otherBookings)
+			cursor.Close(ctx)
+		}
+
+		var overlapping []models.Booking
+		for _, ob := range otherBookings {
+			obStart := ob.StartTime
+			obEndBuf := ob.EndTime.Add(30 * time.Minute)
+			if now.Before(obEndBuf) && obStart.Before(checkInEndBuf) {
+				overlapping = append(overlapping, ob)
+			}
+		}
+
+		// Exclusivity and capacity checks
+		if !booking.IsShared && len(overlapping) > 0 {
+			c.JSON(http.StatusConflict, gin.H{"error": "Cannot check in: table has other bookings scheduled during this dining window."})
+			return
+		}
+
+		for _, ob := range overlapping {
+			if !ob.IsShared {
+				c.JSON(http.StatusConflict, gin.H{"error": "Cannot check in: table has an exclusive booking scheduled during this dining window."})
+				return
+			}
+		}
+
+		if booking.IsShared {
+			timePoints := map[time.Time]bool{
+				now: true,
+			}
+			for _, ob := range overlapping {
+				obStart := ob.StartTime
+				obEndBuf := ob.EndTime.Add(30 * time.Minute)
+				if obStart.After(now) && obStart.Before(checkInEndBuf) {
+					timePoints[obStart] = true
+				}
+				if obEndBuf.After(now) && obEndBuf.Before(checkInEndBuf) {
+					timePoints[obEndBuf] = true
+				}
+			}
+
+			for tp := range timePoints {
+				occupiedAtTP := 0
+				for _, ob := range overlapping {
+					obStart := ob.StartTime
+					obEndBuf := ob.EndTime.Add(30 * time.Minute)
+					if (obStart.Before(tp) || obStart.Equal(tp)) && tp.Before(obEndBuf) {
+						occupiedAtTP += ob.PartySize
+					}
+				}
+				if occupiedAtTP+booking.PartySize > table.Capacity {
+					c.JSON(http.StatusConflict, gin.H{
+						"error": "Cannot check in: total party size would exceed table capacity during this dining window.",
+					})
+					return
+				}
+			}
+		} else {
+			if booking.PartySize > table.Capacity {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot check in: party size exceeds table capacity."})
+				return
+			}
+		}
+
 		// Update booking status to checked_in
 		update := bson.M{
 			"$set": bson.M{
@@ -477,17 +567,19 @@ func UpdateMinEntryTime() gin.HandlerFunc {
 
 // StartBookingAutoCanceller starts a background goroutine to automatically cancel pending bookings that have missed their cutoff time, and auto-complete checked-in bookings that have finished.
 func StartBookingAutoCanceller(ctx context.Context) {
-	// Run once immediately on start
-	runAutoCancellation(ctx)
-
-	ticker := time.NewTicker(30 * time.Minute)
 	go func() {
+		// Run once immediately on start in background
+		fmt.Println("⏳ [Auto-Worker] Initializing background booking auto-canceller...")
+		runAutoCancellation(ctx)
+
+		ticker := time.NewTicker(30 * time.Minute)
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
 				runAutoCancellation(ctx)
 			case <-ctx.Done():
-				ticker.Stop()
+				fmt.Println("🛑 [Auto-Worker] Booking auto-canceller stopped.")
 				return
 			}
 		}
@@ -495,6 +587,7 @@ func StartBookingAutoCanceller(ctx context.Context) {
 }
 
 func runAutoCancellation(ctx context.Context) {
+	fmt.Println("⏳ [Auto-Worker] Starting auto-cancellation and auto-completion check...")
 	bookingCol := getBookingCollection()
 	now := time.Now()
 
@@ -504,9 +597,14 @@ func runAutoCancellation(ctx context.Context) {
 	}
 
 	cancelCursor, err := bookingCol.Find(ctx, cancelFilter)
-	if err == nil {
+	if err != nil {
+		fmt.Printf("❌ [Auto-Worker] Error finding pending bookings: %v\n", err)
+	} else {
 		var pendingBookings []models.Booking
-		if err := cancelCursor.All(ctx, &pendingBookings); err == nil && len(pendingBookings) > 0 {
+		if err := cancelCursor.All(ctx, &pendingBookings); err != nil {
+			fmt.Printf("❌ [Auto-Worker] Error decoding pending bookings: %v\n", err)
+		} else {
+			fmt.Printf("⏳ [Auto-Worker] Found %d pending bookings to evaluate.\n", len(pendingBookings))
 			for _, b := range pendingBookings {
 				// Calculate cutoff time (use stored value or compute fallback for legacy documents)
 				var cutoff time.Time
@@ -531,9 +629,10 @@ func runAutoCancellation(ctx context.Context) {
 						},
 					}
 					_, err := bookingCol.UpdateOne(ctx, bson.M{"_id": b.ID}, update)
-					if err == nil {
+					if err != nil {
+						fmt.Printf("❌ [Auto-Worker] Error updating booking %s to cancelled: %v\n", b.ID.Hex(), err)
+					} else {
 						fmt.Printf("❌ [Auto-Worker] Booking %s for Table %s auto-cancelled due to no-show.\n", b.ID.Hex(), b.TableID)
-						updateTableStatusForCurrentTime(ctx, b.TableID)
 					}
 				}
 			}
@@ -548,10 +647,14 @@ func runAutoCancellation(ctx context.Context) {
 	}
 
 	completeCursor, err := bookingCol.Find(ctx, completeFilter)
-	if err == nil {
+	if err != nil {
+		fmt.Printf("❌ [Auto-Worker] Error finding checked-in bookings: %v\n", err)
+	} else {
 		var finishedBookings []models.Booking
-		if err := completeCursor.All(ctx, &finishedBookings); err == nil && len(finishedBookings) > 0 {
-			fmt.Printf("⏳ [Auto-Worker] Found %d finished checked-in bookings. Completing...\n", len(finishedBookings))
+		if err := completeCursor.All(ctx, &finishedBookings); err != nil {
+			fmt.Printf("❌ [Auto-Worker] Error decoding checked-in bookings: %v\n", err)
+		} else {
+			fmt.Printf("⏳ [Auto-Worker] Found %d finished checked-in bookings to complete.\n", len(finishedBookings))
 			for _, b := range finishedBookings {
 				update := bson.M{
 					"$set": bson.M{
@@ -560,13 +663,33 @@ func runAutoCancellation(ctx context.Context) {
 					},
 				}
 				_, err := bookingCol.UpdateOne(ctx, bson.M{"_id": b.ID}, update)
-				if err == nil {
+				if err != nil {
+					fmt.Printf("❌ [Auto-Worker] Error updating booking %s to completed: %v\n", b.ID.Hex(), err)
+				} else {
 					fmt.Printf("✅ [Auto-Worker] Booking %s for Table %s auto-completed (dining time finished).\n", b.ID.Hex(), b.TableID)
-					updateTableStatusForCurrentTime(ctx, b.TableID)
 				}
 			}
 		}
 		completeCursor.Close(ctx)
+	}
+
+	// 3. Update status of all tables to guarantee database consistency
+	tableCol := getTableCollection()
+	cursor, err := tableCol.Find(ctx, bson.M{})
+	if err != nil {
+		fmt.Printf("❌ [Auto-Worker] Error finding tables for status sync: %v\n", err)
+	} else {
+		var tables []models.Table
+		if err := cursor.All(ctx, &tables); err != nil {
+			fmt.Printf("❌ [Auto-Worker] Error decoding tables for status sync: %v\n", err)
+		} else {
+			fmt.Printf("⏳ [Auto-Worker] Syncing status for %d tables...\n", len(tables))
+			for _, t := range tables {
+				updateTableStatusForCurrentTime(ctx, t.ID.Hex())
+			}
+			fmt.Println("✅ [Auto-Worker] Table status sync completed.")
+		}
+		cursor.Close(ctx)
 	}
 }
 

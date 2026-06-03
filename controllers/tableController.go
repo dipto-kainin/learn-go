@@ -417,7 +417,7 @@ func UpdateTable() gin.HandlerFunc {
 				var tableBookings []models.Booking
 				if err := cursor.All(ctx, &tableBookings); err == nil {
 					for _, b := range tableBookings {
-						if b.StartTime.Before(now) || b.StartTime.IsZero() {
+						if b.Status == "checked_in" || b.StartTime.Before(now) || b.StartTime.IsZero() {
 							newStatus := "completed"
 							if b.Status == "pending" {
 								newStatus = "cancelled"
@@ -434,6 +434,9 @@ func UpdateTable() gin.HandlerFunc {
 				cursor.Close(ctx)
 			}
 		}
+
+		// Recalculate and update table status/reservations for consistency
+		updateTableStatusForCurrentTime(ctx, tableID)
 
 		c.JSON(http.StatusOK, gin.H{"message": "Table updated successfully"})
 	}
