@@ -21,6 +21,6 @@ type User struct {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"email,required" example:"john.doe@example.com"`
+	Email    string `json:"email" validate:"required" example:"john.doe@example.com"`
 	Password string `json:"password" validate:"required" example:"password123"`
 }

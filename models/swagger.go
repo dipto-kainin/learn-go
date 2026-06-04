@@ -45,6 +45,18 @@ type SuccessResponse struct {
 	Message string `json:"message" example:"Operation completed successfully"`
 }
 
+// RefreshRequest represents the refresh token request body
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+}
+
+// RefreshResponse represents the successful refresh response
+type RefreshResponse struct {
+	Message      string `json:"message" example:"Token refreshed successfully"`
+	Token        string `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+}
+
 // FoodCreateRequest represents the request to create a food item
 type FoodCreateRequest struct {
 	Name      string  `json:"name" validate:"required,min=2,max=100" example:"Grilled Chicken"`

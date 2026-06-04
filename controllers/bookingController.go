@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"restroBackend/database"
+	"restroBackend/helpers"
 	"restroBackend/models"
 	"time"
 
@@ -63,9 +64,75 @@ func CreateBooking() gin.HandlerFunc {
 
 		// Get the user info from auth context
 		userType := c.GetString("user_type")
-		if userType == "USER" || booking.UserEmail == "" {
+		if userType == "USER" {
 			booking.UserEmail = c.GetString("email")
 			booking.UserName = c.GetString("first_name") + " " + c.GetString("last_name")
+			var u models.User
+			err := getUserCollection().FindOne(ctx, bson.M{"email": booking.UserEmail}).Decode(&u)
+			if err == nil {
+				booking.UserPhone = u.Phone
+			}
+		} else {
+			// Manual booking: UserEmail, UserName, and UserPhone are mandatory
+			if booking.UserEmail == "" || booking.UserName == "" || booking.UserPhone == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Customer email, name, and phone number are required for manual bookings"})
+				return
+			}
+
+			// Check if user exists by email or phone
+			var u models.User
+			err := getUserCollection().FindOne(ctx, bson.M{
+				"$or": []bson.M{
+					{"email": booking.UserEmail},
+					{"phone": booking.UserPhone},
+				},
+			}).Decode(&u)
+
+			if err != nil {
+				// User does not exist, auto-create a user record
+				firstName := booking.UserName
+				lastName := ""
+				for i, char := range booking.UserName {
+					if char == ' ' {
+						firstName = booking.UserName[:i]
+						lastName = booking.UserName[i+1:]
+						break
+					}
+				}
+				if firstName == "" {
+					firstName = "Guest"
+				}
+
+				randPass := helpers.GenerateRandomPassword(8)
+				hashedPassword, err := helpers.HashPassword(randPass)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash generated password for guest user"})
+					return
+				}
+
+				newUser := models.User{
+					ID:        primitive.NewObjectID(),
+					FirstName: firstName,
+					LastName:  lastName,
+					Email:     booking.UserEmail,
+					Password:  hashedPassword,
+					Phone:     booking.UserPhone,
+					UserType:  "USER",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+				}
+
+				_, insertErr := getUserCollection().InsertOne(ctx, newUser)
+				if insertErr != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user record for guest"})
+					return
+				}
+				fmt.Printf("✅ [Auto-Register] Created user %s with password %s\n", booking.UserEmail, randPass)
+			} else {
+				// Sync names and contact info to booking
+				booking.UserEmail = u.Email
+				booking.UserPhone = u.Phone
+			}
 		}
 
 		// Validate table exists

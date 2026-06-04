@@ -87,9 +87,10 @@ func Signup() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"message": "User created successfully",
-			"token":   token,
-			"user":    user,
+			"message":       "User created successfully",
+			"token":         token,
+			"refresh_token": refreshToken,
+			"user":          user,
 		})
 	}
 }
@@ -118,9 +119,14 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		err := getUserCollection().FindOne(ctx, bson.M{"email": loginReq.Email}).Decode(&foundUser)
+		err := getUserCollection().FindOne(ctx, bson.M{
+			"$or": []bson.M{
+				{"email": loginReq.Email},
+				{"phone": loginReq.Email},
+			},
+		}).Decode(&foundUser)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email/phone or password"})
 			return
 		}
 
@@ -151,8 +157,9 @@ func Login() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Login successful",
-			"token":   token,
+			"message":       "Login successful",
+			"token":         token,
+			"refresh_token": refreshToken,
 			"user": gin.H{
 				"id":         foundUser.ID,
 				"email":      foundUser.Email,
@@ -190,5 +197,76 @@ func GetUser() gin.HandlerFunc {
 
 		user.Password = "" // Don't send password
 		c.JSON(http.StatusOK, user)
+	}
+}
+
+// @Summary Refresh Token
+// @Description Refresh the current JWT access token using a valid refresh token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param body body models.RefreshRequest true "Refresh Token Request"
+// @Success 200 {object} models.RefreshResponse "Refresh successful with new authentication token and refresh token"
+// @Failure 400 {object} models.ErrorResponse "Invalid request body"
+// @Failure 401 {object} models.ErrorResponse "Invalid or expired refresh token"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /auth/refresh [post]
+func Refresh() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req struct {
+			RefreshToken string `json:"refresh_token" binding:"required"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		claims, errMsg := helpers.ValidateToken(req.RefreshToken)
+		if errMsg != "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token: " + errMsg})
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		var foundUser models.User
+		err := getUserCollection().FindOne(ctx, bson.M{"email": claims.Email}).Decode(&foundUser)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			return
+		}
+
+		if foundUser.RefreshToken != req.RefreshToken {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token is invalid or has been revoked"})
+			return
+		}
+
+		newToken, newRefreshToken, err := helpers.GenerateAllTokens(foundUser.Email, foundUser.FirstName, foundUser.LastName, foundUser.UserType)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating tokens"})
+			return
+		}
+
+		update := bson.M{
+			"$set": bson.M{
+				"token":         newToken,
+				"refresh_token": newRefreshToken,
+				"updated_at":    time.Now(),
+			},
+		}
+
+		_, updateErr := getUserCollection().UpdateOne(ctx, bson.M{"_id": foundUser.ID}, update)
+		if updateErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating tokens in database"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":       "Token refreshed successfully",
+			"token":         newToken,
+			"refresh_token": newRefreshToken,
+		})
 	}
 }

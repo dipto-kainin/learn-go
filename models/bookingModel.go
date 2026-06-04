@@ -11,6 +11,7 @@ type Booking struct {
 	TableID        string             `bson:"table_id" json:"table_id" validate:"required" example:"507f1f77bcf86cd799439012"`
 	UserEmail      string             `bson:"user_email" json:"user_email" validate:"required" example:"customer@example.com"`
 	UserName       string             `bson:"user_name" json:"user_name" example:"Jane Doe"`
+	UserPhone      string             `bson:"user_phone" json:"user_phone" example:"+919876543210"`
 	PartySize      int                `bson:"party_size" json:"party_size" validate:"required,min=1,max=20" example:"4"`
 	IsShared       bool               `bson:"is_shared" json:"is_shared" example:"false"`
 	ComfortSharing bool               `bson:"comfort_sharing" json:"comfort_sharing" example:"true"`
