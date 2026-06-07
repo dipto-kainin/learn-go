@@ -1,4 +1,4 @@
-# Restaurant Backend API
+# Bistro Restaurant Chain API
 
 A complete restaurant management backend built with Go, Gin, MongoDB, and JWT authentication.
 
@@ -132,11 +132,6 @@ func main() {
 - `POST /orders` - Create order (authenticated)
 - `PUT /orders/:id` - Update order (authenticated)
 
-### Order Items
-
-- `GET /order-items` - Get order items (authenticated)
-- `POST /order-items` - Create order item (authenticated)
-
 ### Invoices
 
 - `GET /invoices` - Get all invoices (authenticated)
@@ -154,6 +149,6 @@ token: your_jwt_token_here
 
 ## User Types
 
-- `ADMIN` - Full access to all resources
-- `USER` - Limited access (can create orders, view menus, etc.)
-  go run main.go
+- `ADMIN` - Full access to all administrative resources, maps, and menus
+- `STAFF` - Access to floor maps, active kitchen ticket board, and billing/invoice verification
+- `USER` - Guest customer access (can create orders, view menus, and manage reservations)
