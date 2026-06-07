@@ -1,5 +1,101 @@
 basePath: /
 definitions:
+  models.Booking:
+    properties:
+      comfort_sharing:
+        example: true
+        type: boolean
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      end_time:
+        example: "2026-06-03T12:00:00Z"
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      is_shared:
+        example: false
+        type: boolean
+      min_entry_time:
+        example: "2026-06-03T10:30:00Z"
+        type: string
+      party_size:
+        example: 4
+        maximum: 20
+        minimum: 1
+        type: integer
+      start_time:
+        example: "2026-06-03T10:00:00Z"
+        type: string
+      status:
+        enum:
+        - pending
+        - checked_in
+        - cancelled
+        example: pending
+        type: string
+      table_id:
+        example: 507f1f77bcf86cd799439012
+        type: string
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      user_email:
+        example: customer@example.com
+        type: string
+      user_name:
+        example: Jane Doe
+        type: string
+      user_phone:
+        example: "+919876543210"
+        type: string
+    required:
+    - end_time
+    - party_size
+    - start_time
+    - table_id
+    - user_email
+    type: object
+  models.BookingCreateRequest:
+    properties:
+      comfort_sharing:
+        example: true
+        type: boolean
+      end_time:
+        example: "2026-06-03T12:00:00Z"
+        type: string
+      is_shared:
+        example: false
+        type: boolean
+      party_size:
+        example: 4
+        maximum: 20
+        minimum: 1
+        type: integer
+      start_time:
+        example: "2026-06-03T10:00:00Z"
+        type: string
+      table_id:
+        example: 507f1f77bcf86cd799439012
+        type: string
+    required:
+    - end_time
+    - party_size
+    - start_time
+    - table_id
+    type: object
+  models.BookingResponse:
+    properties:
+      booking:
+        $ref: '#/definitions/models.Booking'
+      id:
+        example: 507f1f77bcf86cd799439019
+        type: string
+      message:
+        example: Booking created successfully
+        type: string
+    type: object
   models.ErrorResponse:
     properties:
       error:
@@ -221,6 +317,10 @@ definitions:
       created_at:
         example: "2024-01-01T00:00:00Z"
         type: string
+      food_items:
+        items:
+          $ref: '#/definitions/models.OrderItemNested'
+        type: array
       id:
         example: 507f1f77bcf86cd799439011
         type: string
@@ -315,6 +415,19 @@ definitions:
     - quantity
     - unit_price
     type: object
+  models.OrderItemNested:
+    properties:
+      amount:
+        minimum: 1
+        type: integer
+      id:
+        type: string
+      unit_price:
+        type: number
+    required:
+    - amount
+    - id
+    type: object
   models.OrderItemResponse:
     properties:
       id:
@@ -336,6 +449,26 @@ definitions:
         type: string
       order:
         $ref: '#/definitions/models.Order'
+    type: object
+  models.RefreshRequest:
+    properties:
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    required:
+    - refresh_token
+    type: object
+  models.RefreshResponse:
+    properties:
+      message:
+        example: Token refreshed successfully
+        type: string
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
     type: object
   models.SignupRequest:
     properties:
@@ -361,8 +494,9 @@ definitions:
         type: string
       user_type:
         enum:
-        - USER
         - ADMIN
+        - STAFF
+        - USER
         example: USER
         type: string
     required:
@@ -407,6 +541,9 @@ definitions:
         type: boolean
       number_of_guests:
         example: 4
+        type: integer
+      seats_reserved:
+        example: 2
         type: integer
       status:
         example: vacant
@@ -486,8 +623,9 @@ definitions:
         type: string
       user_type:
         enum:
-        - USER
         - ADMIN
+        - STAFF
+        - USER
         example: USER
         type: string
     required:
@@ -514,8 +652,9 @@ definitions:
         type: string
       user_type:
         enum:
-        - USER
         - ADMIN
+        - STAFF
+        - USER
         example: USER
         type: string
     type: object
@@ -565,6 +704,41 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: User Login
+      tags:
+      - Authentication
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the current JWT access token using a valid refresh token
+      parameters:
+      - description: Refresh Token Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Refresh successful with new authentication token and refresh
+            token
+          schema:
+            $ref: '#/definitions/models.RefreshResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Invalid or expired refresh token
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Refresh Token
       tags:
       - Authentication
   /auth/signup:
@@ -626,6 +800,204 @@ paths:
       summary: Get Current User
       tags:
       - Authentication
+  /bookings:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve bookings. Customers see their own bookings, staff/admin
+        see all.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of bookings
+          schema:
+            items:
+              $ref: '#/definitions/models.Booking'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get All Bookings
+      tags:
+      - Booking
+    post:
+      consumes:
+      - application/json
+      description: Customer creates a table booking (soft lock / reservation)
+      parameters:
+      - description: Booking details
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/models.BookingCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Booking created successfully
+          schema:
+            $ref: '#/definitions/models.BookingResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Table not available
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Booking
+      tags:
+      - Booking
+  /bookings/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific booking by its ID
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Booking details
+          schema:
+            $ref: '#/definitions/models.Booking'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Booking not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Booking by ID
+      tags:
+      - Booking
+  /bookings/{id}/cancel:
+    put:
+      consumes:
+      - application/json
+      description: Cancel a booking. Customers can cancel their own, staff/admin can
+        cancel any.
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Booking cancelled
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid ID or booking already cancelled
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Access denied
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Booking not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel Booking
+      tags:
+      - Booking
+  /bookings/{id}/check-in:
+    put:
+      consumes:
+      - application/json
+      description: Staff/admin verifies and checks in a customer booking (hard lock)
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Booking checked in
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Invalid ID or booking not pending
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Booking not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Check In Booking
+      tags:
+      - Booking
+  /bookings/{id}/min-entry-time:
+    put:
+      consumes:
+      - application/json
+      description: Staff/admin shifts the minimum entry time (cutoff time) of a booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New minimum entry time
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Booking'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Minimum entry time updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Booking not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Minimum Entry Time
+      tags:
+      - Booking
   /foods:
     get:
       consumes:
@@ -1451,6 +1823,153 @@ paths:
       summary: Update Order
       tags:
       - Order
+  /payments/confirm-cash:
+    post:
+      consumes:
+      - application/json
+      description: Staff confirms physical cash collection and vacates table
+      parameters:
+      - description: Local Order ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Confirm Cash Payment
+      tags:
+      - Payment
+  /payments/create-order:
+    post:
+      consumes:
+      - application/json
+      description: Initiate a Razorpay payment order for checkout
+      parameters:
+      - description: Local Order ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Razorpay Order
+      tags:
+      - Payment
+  /payments/request-cash:
+    post:
+      consumes:
+      - application/json
+      description: Initiate a cash checkout request by the customer
+      parameters:
+      - description: Local Order ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Request Cash Payment
+      tags:
+      - Payment
+  /payments/verify:
+    post:
+      consumes:
+      - application/json
+      description: Validate payment success, generate invoice, and free table
+      parameters:
+      - description: Razorpay credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Verify Razorpay Payment Signature
+      tags:
+      - Payment
   /tables:
     get:
       consumes:
