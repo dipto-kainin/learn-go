@@ -75,9 +75,9 @@ func main() {
 	routes.MenuRoutes(router)
 	routes.OrderRoutes(router)
 	routes.TableRoutes(router)
-	routes.OrderItemRoutes(router)
 	routes.InvoiceRoutes(router)
 	routes.BookingRoutes(router)
+	routes.PaymentRoutes(router)
 
 	// Swagger documentation route
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

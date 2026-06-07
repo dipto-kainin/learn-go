@@ -112,15 +112,39 @@ func CreateOrder() gin.HandlerFunc {
 			return
 		}
 
+		if order.Status != "pending" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "New orders must be created with 'pending' status"})
+			return
+		}
+
 		// Prevent duplicate active orders on the same table
 		var existingOrder models.Order
 		err := getOrderCollection().FindOne(ctx, bson.M{
 			"table_id": order.TableID,
-			"status":   bson.M{"$nin": []string{"served", "cancelled"}},
+			"status":   bson.M{"$nin": []string{"completed", "cancelled"}},
 		}).Decode(&existingOrder)
 		if err == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "An active order already exists for this table"})
 			return
+		}
+
+		// Populate food item prices if provided
+		if len(order.FoodItems) > 0 {
+			foodColl := database.GetCollection(database.Client, "foods")
+			for i, item := range order.FoodItems {
+				foodObjID, err := primitive.ObjectIDFromHex(item.ID)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid food item ID: " + item.ID})
+					return
+				}
+				var food models.Food
+				err = foodColl.FindOne(ctx, bson.M{"_id": foodObjID}).Decode(&food)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Food item not found: " + item.ID})
+					return
+				}
+				order.FoodItems[i].UnitPrice = food.Price
+			}
 		}
 
 		order.CreatedAt = time.Now()
@@ -173,12 +197,40 @@ func UpdateOrder() gin.HandlerFunc {
 			return
 		}
 
+		// Enforce no empty orders can be moved to active/completed statuses
+		if order.Status != "pending" && order.Status != "cancelled" && order.Status != "" {
+			if len(order.FoodItems) == 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot transition status of an empty order. Please add food items first."})
+				return
+			}
+		}
+
+		// Populate food item prices if provided
+		if len(order.FoodItems) > 0 {
+			foodColl := database.GetCollection(database.Client, "foods")
+			for i, item := range order.FoodItems {
+				foodObjID, err := primitive.ObjectIDFromHex(item.ID)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid food item ID: " + item.ID})
+					return
+				}
+				var food models.Food
+				err = foodColl.FindOne(ctx, bson.M{"_id": foodObjID}).Decode(&food)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Food item not found: " + item.ID})
+					return
+				}
+				order.FoodItems[i].UnitPrice = food.Price
+			}
+		}
+
 		order.UpdatedAt = time.Now()
 
 		update := bson.M{
 			"$set": bson.M{
 				"table_id":   order.TableID,
 				"status":     order.Status,
+				"food_items": order.FoodItems,
 				"updated_at": order.UpdatedAt,
 			},
 		}

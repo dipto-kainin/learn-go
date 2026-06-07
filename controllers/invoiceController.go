@@ -110,6 +110,26 @@ func CreateInvoice() gin.HandlerFunc {
 			return
 		}
 
+		// Enforce order has items to prevent empty order billing
+		objID, err := primitive.ObjectIDFromHex(invoice.OrderID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
+			return
+		}
+
+		var order models.Order
+		orderCol := database.GetCollection(database.Client, "orders")
+		err = orderCol.FindOne(ctx, bson.M{"_id": objID}).Decode(&order)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+			return
+		}
+
+		if len(order.FoodItems) == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot create invoice for an empty order"})
+			return
+		}
+
 		invoice.CreatedAt = time.Now()
 		invoice.UpdatedAt = time.Now()
 		invoice.ID = primitive.NewObjectID()
