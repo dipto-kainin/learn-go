@@ -100,14 +100,6 @@ type InvoiceCreateRequest struct {
 	PaymentStatus string  `json:"payment_status" validate:"required" example:"paid" enums:"pending,paid,failed,refunded"`
 }
 
-// OrderItemCreateRequest represents the request to create an order item
-type OrderItemCreateRequest struct {
-	OrderID   string  `json:"order_id" validate:"required" example:"507f1f77bcf86cd799439012"`
-	FoodID    string  `json:"food_id" validate:"required" example:"507f1f77bcf86cd799439013"`
-	Quantity  int     `json:"quantity" validate:"required,min=1" example:"2"`
-	UnitPrice float64 `json:"unit_price" validate:"required,gt=0" example:"150.00"`
-}
-
 // MenuResponse represents the response after creating or fetching a menu
 type MenuResponse struct {
 	Message string `json:"message" example:"Menu fetched successfully"`
@@ -127,13 +119,6 @@ type TableResponse struct {
 	Message string `json:"message" example:"Table fetched successfully"`
 	ID      string `json:"id" example:"507f1f77bcf86cd799439016"`
 	Table   Table  `json:"table"`
-}
-
-// OrderItemResponse represents the response after creating or fetching an order item
-type OrderItemResponse struct {
-	Message   string    `json:"message" example:"Order item fetched successfully"`
-	ID        string    `json:"id" example:"507f1f77bcf86cd799439017"`
-	OrderItem OrderItem `json:"order_item"`
 }
 
 // InvoiceResponse represents the response after creating or fetching an invoice
